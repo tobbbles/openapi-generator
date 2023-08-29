@@ -1,25 +1,17 @@
 {{>licenseInfo}}
-{{#models}}
-{{#model}}
-{{#isEnum}}
-{{>model_enum}}
-{{/isEnum}}
-{{^isEnum}}
-defmodule {{moduleName}}.Model.{{classname}} do
+{{#models}}{{#model}}defmodule {{moduleName}}.Model.{{classname}} do
   @moduledoc """
   {{&description}}
   """
-
-  @derive Jason.Encoder
-  defstruct [
-    {{#vars}}{{#atom}}{{&baseName}}{{/atom}}{{^-last}},
-    {{/-last}}{{/vars}}
+  @allowed_values [
+    {{#allowableValues}}
+    {{#enumVars}}
+    {{{value}}},
+    {{/enumVars}}
+    {{/allowableValues}}
   ]
 
-  @type t :: %__MODULE__{
-    {{#vars}}{{#atom}}{{&baseName}}{{/atom}} => {{{datatype}}}{{#isNullable}} | nil{{/isNullable}}{{^isNullable}}{{^required}} | nil{{/required}}{{/isNullable}}{{^-last}},
-    {{/-last}}{{/vars}}
-  }
+  @type t :: String.t()
 
 {{#hasComplexVars}}
   alias {{&moduleName}}.Deserializer
@@ -38,7 +30,11 @@ defmodule {{moduleName}}.Model.{{classname}} do
     value
 {{/hasComplexVars}}
   end
+
+  defimpl Jason.Encoder, for: __MODULE__ do
+    def encode(value, opts) do
+      Jason.Encode.string(value, opts)
+    end
+  end
 end
-{{/isEnum}}
-{{/model}}
-{{/models}}
+{{/model}}{{/models}}
